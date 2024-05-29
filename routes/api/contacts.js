@@ -1,12 +1,11 @@
 import express from "express";
-import ContactsOperations from "../../models/contacts.js";
 import Joi from "joi";
+import ContactsController from "../../controller/contacts-controller.js";
 
 const router = express.Router();
 
 const STATUS_CODES = {
   ok: 200,
-  internalServerError: 500,
   notFound: 404,
   created: 201,
   badRequest: 400,
@@ -14,32 +13,30 @@ const STATUS_CODES = {
 
 const MESSAGES = {
   success: "The operation was successfully completed",
-  error: "The operation failed because:",
   notFound: "Not found",
   missingFields: "One or more requested fields are missing",
   delete: "Contact deleted",
-  missingField: "All fields are empty",
+  emptyBody: "The body of the request is empty",
+  missingFavoriteField: "Missing favorite field",
 };
 
 router.get("/", async (req, res, next) => {
   try {
-    const contacts = await ContactsOperations.listContacts();
+    const contacts = await ContactsController.listContacts();
 
     res.status(STATUS_CODES.ok).json({
       message: MESSAGES.success,
       data: contacts,
     });
   } catch (error) {
-    res.status(STATUS_CODES.internalServerError).json({
-      message: `${MESSAGES.error} ${error.message}`,
-    });
+    next(error);
   }
 });
 
 router.get("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
-    const contact = await ContactsOperations.getContactById(contactId);
+    const contact = await ContactsController.getContactById(contactId);
 
     if (!contact) {
       res.status(STATUS_CODES.notFound).json({
@@ -53,50 +50,46 @@ router.get("/:contactId", async (req, res, next) => {
       data: contact,
     });
   } catch (error) {
-    res.status(STATUS_CODES.internalServerError).json({
-      message: `${MESSAGES.error} ${error.message}`,
-    });
+    next(error);
   }
 });
 
 router.post("/", async (req, res, next) => {
   try {
-    const contact = req.body;
-    const passedFieldsValidation = contactSchema.validate(contact);
+    const body = req.body;
+    const { error } = contactSchema.validate(body);
 
-    if (passedFieldsValidation.error) {
+    if (error) {
       res.status(STATUS_CODES.badRequest).json({
-        message: passedFieldsValidation.error.details[0].message,
+        message: error.details[0].message,
       });
       return;
     }
 
-    const passedRequiredFields = allFieldsRequired(contact);
+    const passedValidation = allFieldsRequired(body);
 
-    if (!passedRequiredFields) {
+    if (!passedValidation) {
       res.status(STATUS_CODES.badRequest).json({
         message: MESSAGES.missingFields,
       });
       return;
     }
 
-    const createdContact = await ContactsOperations.addContact(contact);
+    const createdContact = await ContactsController.addContact(body);
 
     res.status(STATUS_CODES.created).json({
       message: MESSAGES.success,
       data: createdContact,
     });
   } catch (error) {
-    res.status(STATUS_CODES.internalServerError).json({
-      message: `${MESSAGES.error} ${error.message}`,
-    });
+    next(error);
   }
 });
 
 router.delete("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
-    const wasRemoved = await ContactsOperations.removeContact(contactId);
+    const wasRemoved = await ContactsController.removeContact(contactId);
 
     if (!wasRemoved) {
       res.status(STATUS_CODES.notFound).json({
@@ -109,74 +102,121 @@ router.delete("/:contactId", async (req, res, next) => {
       message: MESSAGES.delete,
     });
   } catch (error) {
-    res.status(STATUS_CODES.internalServerError).json({
-      message: `${MESSAGES.error} ${error.message}`,
-    });
+    next(error);
   }
 });
 
 router.put("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
-    const changes = req.body;
-    const passedFieldsValidation = contactSchema.validate(changes);
+    const body = req.body;
+    const { error } = contactSchema.validate(changes);
 
-    if (passedFieldsValidation.error) {
+    if (error) {
       res.status(STATUS_CODES.badRequest).json({
-        message: passedFieldsValidation.error.details[0].message,
+        message: error.details[0].message,
       });
       return;
     }
 
-    const passedRequiredFields = oneFieldRequired(changes);
+    const passedValidation = oneFieldRequired(body);
 
-    if (!passedRequiredFields) {
+    if (!passedValidation) {
       res.status(STATUS_CODES.badRequest).json({
-        message: MESSAGES.missingField,
+        message: MESSAGES.emptyBody,
       });
       return;
     }
 
-    const changedContact = await ContactsOperations.updateContact(
-      contactId,
-      changes
-    );
+    const wasModified = await ContactsController.updateContact(contactId, body);
 
-    if (!changedContact) {
+    if (!wasModified) {
       res.status(STATUS_CODES.notFound).json({
         message: MESSAGES.notFound,
       });
       return;
     }
 
+    const modifiedContact = await ContactsController.getContactById(contactId);
+
     res.status(STATUS_CODES.ok).json({
       message: MESSAGES.success,
-      data: changedContact,
+      data: modifiedContact,
     });
   } catch (error) {
-    res.status(STATUS_CODES.internalServerError).json({
-      message: `${MESSAGES.error} ${error.message}`,
+    next(error);
+  }
+});
+
+router.patch("/:contactId/favorite", async (req, res, next) => {
+  try {
+    const contactId = req.params.contactId;
+    const body = req.body;
+    const { error } = contactSchema.validate(body);
+
+    if (error) {
+      res.status(STATUS_CODES.badRequest).json({
+        message: error.details[0].message,
+      });
+    }
+
+    const passedValidation = favoriteFieldRequired(body);
+
+    if (!passedValidation) {
+      res.status(STATUS_CODES.badRequest).json({
+        message: MESSAGES.missingFavoriteField,
+      });
+    }
+
+    const wasModified = await ContactsController.updateFavoriteStatus(
+      contactId,
+      body
+    );
+
+    if (!wasModified) {
+      res.status(STATUS_CODES.notFound).json({
+        message: MESSAGES.notFound,
+      });
+    }
+
+    const modifiedContact = await ContactsController.getContactById(contactId);
+
+    res.status(STATUS_CODES.ok).json({
+      message: MESSAGES.success,
+      data: modifiedContact,
     });
+  } catch (error) {
+    next(error);
   }
 });
 
 // Validations
 
-function allFieldsRequired(item) {
-  if (!item?.name || !item?.email || !item?.phone) {
+function allFieldsRequired(body) {
+  if (!body?.name || !body?.email || !body?.phone) {
     return false;
   }
 
   return true;
 }
 
-function oneFieldRequired(item) {
-  if (item?.name || item?.email || item?.phone) {
+function oneFieldRequired(body) {
+  if (body?.name || body?.email || body?.phone) {
     return true;
   }
 
   return false;
 }
+
+function favoriteFieldRequired(body) {
+  if (body?.favorite) {
+    return true;
+  }
+
+  return false;
+}
+
+// Schema
 
 const contactSchema = Joi.object({
   name: Joi.string()
@@ -188,6 +228,7 @@ const contactSchema = Joi.object({
     .pattern(/^[\d+()\-\s]+$/, { name: "phone" })
     .min(3)
     .max(20),
+  favorite: Joi.boolean(),
 });
 
 export default router;
