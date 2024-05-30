@@ -110,7 +110,7 @@ router.put("/:contactId", async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
     const body = req.body;
-    const { error } = contactSchema.validate(changes);
+    const { error } = contactSchema.validate(body);
 
     if (error) {
       res.status(STATUS_CODES.badRequest).json({
