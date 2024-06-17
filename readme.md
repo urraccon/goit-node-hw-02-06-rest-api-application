@@ -2,9 +2,17 @@
 
 ### Homework 5th - Avatars:
 
-- `upload avatar request`
+- `login request`
 
-![get list](./screenshots/upload-avatar-request.png)
+![get list](./screenshots/login-request.png)
+
+- `authorization upload avatar request`
+
+![get list](./screenshots/auth-upload-avatar-requestt.png)
+
+- `body upload avatar request`
+
+![get list](./screenshots/body-upload-avatar-request.png)
 
 - `database avatar URL`
 
