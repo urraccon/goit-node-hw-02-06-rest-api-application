@@ -8,7 +8,7 @@
 
 - `authorization upload avatar request`
 
-![get list](./screenshots/auth-upload-avatar-requestt.png)
+![get list](./screenshots/auth-upload-avatar-request.png)
 
 - `body upload avatar request`
 
