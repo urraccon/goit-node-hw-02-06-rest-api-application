@@ -122,4 +122,14 @@ router.get(
   }
 );
 
+router.patch(
+  "/avatars",
+  [UsersController.validateToken, UsersController.uploadFile],
+  (avatarURL, req, res, next) => {
+    res.status(STATUS_CODES.ok).json({
+      avatarURL,
+    });
+  }
+);
+
 export default router;

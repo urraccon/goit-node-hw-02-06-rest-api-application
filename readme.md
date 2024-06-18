@@ -1,29 +1,23 @@
-## GoIT Node.js Course Template Homework
+## GoIT Node.JS Homeworks from 2nd to 6th - REST API Application
 
-Realizează un fork al acestui repozitoriu pentru a îndeplini temele de acasă (2-6). Fork-ul va crea un repozitoriu pe contul tău de pe http://github.com
+### Homework 5th - Avatars:
 
-Adaugă mentorul la colaborare.
+- `login request`
 
-Pentru fiecare temă, creează un branch separat.
+![get list](./screenshots/login-request.png)
 
-- hw02
-- hw03
-- hw04
-- hw05
-- hw06
+- `authorization upload avatar request`
 
-Fiecare branch nou pentru fiecare temă trebuie să fie derivat din branch-ul principal (master).
+![get list](./screenshots/auth-upload-avatar-request.png)
 
-După ce ai terminat lucrul la tema de acasă în branch-ul tău, trebuie să creezi un pull request (PR). Apoi, adaugă mentorul pentru revizuirea codului. Abia după ce mentorul aprobă PR-ul, poți face "merge" a branch-ului cu tema de acasă în branch-ul master.
+- `body upload avatar request`
 
-Citește cu atenție comentariile mentorului. Corectează observațiile și fă un "commit" în branch-ul cu tema de acasă. Modificările se vor reflecta automat în PR după ce trimiți "commit"-ul cu corecțiile pe GitHub. După corectare, adaugă din nou mentorul pentru revizuirea codului.
+![get list](./screenshots/body-upload-avatar-request.png)
 
-- La predarea temei de acasă, este furnizat un link către PR.
-- Codul JavaScript este curat și ușor de înțeles, iar pentru formatare se folosește Prettier.
+- `database avatar URL`
 
-### Comenzi:
+![get list](./screenshots/DB-avatar-URL.png)
 
-- `npm start` &mdash; pornește serverul în modul production.
-- `npm run start:dev` &mdash; pornește serverul în modul dezvoltare (development).
-- `npm run lint` &mdash; rulează verificarea codului cu ESLint, este necesar să se ruleze înaintea fiecărui PR și să se corecteze toate erorile linterului.
-- `npm lint:fix` &mdash; aceeași verificare a linterului, dar cu corecții automate pentru erorile simple.
+- `show avatar request`
+
+![get list](./screenshots/show-avatar-request.png)
