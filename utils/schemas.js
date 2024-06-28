@@ -13,7 +13,7 @@ export const contactSchema = Joi.object({
   favorite: Joi.boolean(),
 });
 
-export const userSignupSchema = Joi.object({
+export const signupUserSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string()
     .min(8)
@@ -21,7 +21,11 @@ export const userSignupSchema = Joi.object({
     .pattern(/^[a-zA-Z0-9!@#$%^&*()_+-]+$/, { name: "password" }),
 });
 
-export const userLoginSchema = Joi.object({
+export const loginUserSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
+});
+
+export const userEmailSchema = Joi.object({
+  email: Joi.string().email().required(),
 });

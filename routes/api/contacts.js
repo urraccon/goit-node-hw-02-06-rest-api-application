@@ -169,7 +169,7 @@ router.patch(
 
       if (!passedValidation) {
         return res.status(STATUS_CODES.badRequest).json({
-          message: MESSAGES.missingFavoriteField,
+          message: MESSAGES.missingFavField,
         });
       }
 

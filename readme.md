@@ -1,23 +1,31 @@
 ## GoIT Node.JS Homeworks from 2nd to 6th - REST API Application
 
-### Homework 5th - Avatars:
+### Homework 6th - Email:
 
-- `login request`
+- `verification token sent`
 
-![get list](./screenshots/login-request.png)
+![get list](./screenshots/verification-token-sent.png)
 
-- `authorization upload avatar request`
+- `verification token`
 
-![get list](./screenshots/auth-upload-avatar-request.png)
+![get list](./screenshots/verification-token.png)
 
-- `body upload avatar request`
+- `deferred error`
 
-![get list](./screenshots/body-upload-avatar-request.png)
+![get list](./screenshots/deferred-error.png)
 
-- `database avatar URL`
+- `verification token request`
 
-![get list](./screenshots/DB-avatar-URL.png)
+![get list](./screenshots/verification-token-request.png)
 
-- `show avatar request`
+- `verification passed`
 
-![get list](./screenshots/show-avatar-request.png)
+![get list](./screenshots/verification-passed.png)
+
+- `resend-verification-token-request`
+
+![get list](./screenshots/resend-verification-token-request.png)
+
+- `verification token resent`
+
+![get list](./screenshots/verification-token-resent.png)
