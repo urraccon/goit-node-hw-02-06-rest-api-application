@@ -1,6 +1,10 @@
 import express from "express";
 import { MESSAGES, STATUS_CODES } from "../../utils/constants.js";
-import { userLoginSchema, userSignupSchema } from "../../utils/schemas.js";
+import {
+  loginUserSchema,
+  signupUserSchema,
+  userEmailSchema,
+} from "../../utils/schemas.js";
 import User from "../../models/users.js";
 import UsersController from "../../controller/users-controller.js";
 
@@ -9,7 +13,7 @@ const router = express.Router();
 router.post("/signup", async (req, res, next) => {
   try {
     const body = req.body;
-    const { error } = userSignupSchema.validate(body);
+    const { error } = signupUserSchema.validate(body);
 
     if (error) {
       return res.status(STATUS_CODES.badRequest).json({
@@ -42,7 +46,7 @@ router.post("/signup", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
   try {
     const body = req.body;
-    const { error } = userLoginSchema.validate(body);
+    const { error } = loginUserSchema.validate(body);
 
     if (error) {
       return res.status(STATUS_CODES.badRequest).json({
@@ -61,7 +65,13 @@ router.post("/login", async (req, res, next) => {
 
     const token = await UsersController.login(body);
 
-    if (!token) {
+    if (token === "unverified") {
+      return res.status(STATUS_CODES.unauthorized).json({
+        message: MESSAGES.unverified,
+      });
+    }
+
+    if (token === "mismatch") {
       return res.status(STATUS_CODES.unauthorized).json({
         message: MESSAGES.invalidLogin,
       });
@@ -132,4 +142,56 @@ router.patch(
   }
 );
 
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  try {
+    const token = req.params.verificationToken;
+    const user = await UsersController.getUserByValidationToken(token);
+
+    if (!user) {
+      return res.status(STATUS_CODES.notFound).json({
+        message: MESSAGES.userNotFound,
+      });
+    }
+
+    const userId = user._id;
+
+    await User.findByIdAndUpdate(userId, {
+      verificationToken: null,
+      verify: true,
+    });
+
+    res.status(STATUS_CODES.ok).json({
+      message: MESSAGES.verificationPassed,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/verify", async (req, res, next) => {
+  try {
+    const body = req.body;
+    const { error } = userEmailSchema.validate(body);
+
+    if (error) {
+      return res.status(STATUS_CODES.badRequest).json({
+        message: error.details[0].message,
+      });
+    }
+
+    const wasResent = UsersController.resendVerificationToken(body);
+
+    if (!wasResent) {
+      return res.status(STATUS_CODES.badRequest).json({
+        message: MESSAGES.verified,
+      });
+    }
+
+    res.status(STATUS_CODES.ok).json({
+      message: MESSAGES.tokenSent,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 export default router;

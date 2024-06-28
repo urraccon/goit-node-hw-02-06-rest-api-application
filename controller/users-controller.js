@@ -9,6 +9,8 @@ import multer from "multer";
 import Jimp from "jimp";
 import path from "path";
 import fs from "fs/promises";
+import { v4 as uuidv4 } from "uuid";
+import { sendFromSendGrid } from "../utils/sendEmail.js";
 
 const secret = process.env.TOKEN_SECRET;
 const upload = multer({ dest: "tmp" }).single("avatar");
@@ -17,12 +19,16 @@ async function signup(body) {
   const { email, password } = body;
   const encryptedPass = await bcrypt.hash(password, 10);
   const avatarURL = gravatar.url(email);
+  const token = uuidv4();
 
   const newUser = new User({
     email,
     password: encryptedPass,
     avatarURL,
+    verificationToken: token,
   });
+
+  sendFromSendGrid(email, token);
 
   return User.create(newUser);
 }
@@ -30,10 +36,16 @@ async function signup(body) {
 async function login(body) {
   const { email, password } = body;
   const user = await User.findOne({ email });
+  const isVerified = user.verify;
+
+  if (!isVerified) {
+    return "unverified";
+  }
+
   const match = await bcrypt.compare(password, user.password);
 
   if (!match) {
-    return "";
+    return "mismatch";
   }
 
   const token = jwt.sign(
@@ -88,11 +100,34 @@ function uploadFile(req, res, next) {
   }
 }
 
+async function getUserByValidationToken(token) {
+  return await User.findOne({ verificationToken: token });
+}
+
+async function resendVerificationToken(body) {
+  const { email } = body;
+  const user = await User.findOne({ email });
+  const isVerified = user.verify;
+
+  if (isVerified) {
+    return false;
+  }
+
+  const token = uuidv4();
+
+  await User.findOneAndUpdate({ email }, { token });
+  sendFromSendGrid(email, token);
+
+  return true;
+}
+
 const UsersController = {
   signup,
   login,
   validateToken,
   uploadFile,
+  getUserByValidationToken,
+  resendVerificationToken,
 };
 
 export default UsersController;
